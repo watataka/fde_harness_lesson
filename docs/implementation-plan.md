@@ -94,7 +94,14 @@
   - コンポーネントテストで`vi.useFakeTimers()`を素朴に使うと、React Testing Libraryの`waitFor`/`findBy`が内部で使うタイマーまで止まりタイムアウトする。`{ toFake: ["Date"] }`でDateのみ偽装するよう修正
   - 単体テスト(notification-manager純粋関数)25件＋コンポーネントテスト20件を追加、計119件全件パス
   - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
-- [ ] `app/page.tsx` / `app/settings/page.tsx` / `app/layout.tsx` 実装（`notification-manager`は`layout.tsx`にマウント、`local-date` Cookie同期とハイライト用Contextを提供）
+- [x] `app/page.tsx` / `app/settings/page.tsx` / `app/layout.tsx` 実装
+  - `app/layout.tsx`: `<NotificationManager>{children}</NotificationManager>`でラップ
+  - `app/page.tsx`: `local-date` Cookie（`components/notification-manager.tsx`のエクスポート定数`LOCAL_DATE_COOKIE`を再利用）から`today`を取得し、`getTodosByDate`（読み取り専用）のみ呼ぶ
+  - `app/settings/page.tsx`: `getSettings`を直接呼ぶ
+  - create-next-appのボイラープレート（`page.tsx`, `page.module.css`）を全面置き換え
+  - `npm run build`で`/`が動的（`cookies()`使用のため）、`/settings`が静的（`revalidatePath`で更新時に再検証される）とビルド出力で確認
+  - `npm run dev` + ブラウザで実際に動作確認: Todo登録→一覧反映→ステータス変更（完了に強調表示）→設定画面表示、実際のSupabaseに対してconsoleエラーなしで一連の操作が成功。確認用に作成したテストTodoはSupabase MCP経由で削除済み
+  - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
 - [ ] Playwright E2Eテスト（AC-2.x, AC-4.x の通知シナリオ、Chrome通知許可モック・システム時刻モック含む）
 - [ ] 全体テスト実行（`npm run test`, `npm run test:e2e`）→ 最終レビュー
 
