@@ -17,16 +17,21 @@
 - [x] `docs/design/notification-logic.md`（Rev.2） — 通知ロジック設計（プッシュ通知は時刻完全一致・1日1回、状態バナーは`>=`判定で独立評価、という分離設計）
   - 目付け役レビュー: Rev.1 **CONDITIONAL** → Rev.2修正 → **PASS**
   - ユーザー決定事項: スリープ復帰時の緩和判定は不採用（spec.md異常系No.2優先）、マルチユーザー対応(`user_id`)は追加しない
-- [x] `docs/design/service-layer-api.md`（Rev.2） — `todo-service.ts` / `setting-service.ts` の関数シグネチャ・バリデーション・レスポンス形式
+- [x] `docs/design/service-layer-api.md`（Rev.2、Rev.3で軽微訂正） — `todo-service.ts` / `setting-service.ts` の関数シグネチャ・バリデーション・レスポンス形式
   - 目付け役レビュー: Rev.1 **CONDITIONAL** → Rev.2修正 → **PASS**
   - ユーザー決定事項: Server Componentはサービス層を直接呼び出してよい（Route Handlerを経由しない、Vercelベストプラクティスに準拠）
   - 設計のポイント: `updateTodoStatus`はサービス層内で1回自動リトライし異常系No.7を解決／30日クリーンアップは`after()`で非同期化
+- [x] `docs/design/component-design.md`（Rev.3） — 画面/コンポーネント設計（Server/Client Componentの境界線、`today`日付の扱い）
+  - 目付け役レビュー: Rev.1 **REJECT** → Rev.2修正 → 再レビュー **REJECT**（2回連続） → Rev.3で根本設計変更 → **PASS**
+  - **重要な設計変更**: SSR初期表示（Server Component）は`getTodosByDate`による読み取り専用とし、繰越・クリーンアップ（書き込み）は新設のServer Action `initializeToday(date)` としてクライアントが直接計算したブラウザ日付でのみ実行する方式に変更。これに伴い service-layer-api.md 側の`initializeTodayTodos`呼び出し元の記述も訂正済み
+  - 新規ファイル（要実装時に作成）: `lib/date-utils.ts`（`getLocalDateString()`）
+  - ハイライト機能（AC-4.4）は`notification-manager.tsx`内の軽量Contextで実現、`lib/date-utils.ts`以外の新規ファイルは追加しない
 
 ## 今後の実装計画
 
-### 設計フェーズ（残り）
+### 設計フェーズ
 
-- [ ] 画面/コンポーネント設計書 — `page.tsx` / `todo-form.tsx` 等の役割分担、Server/Client Componentの境界線（目付け役レビュー）
+全4件完了（DBスキーマ、通知ロジック、サービス層API、画面/コンポーネント）。実装フェーズへ移行する。
 
 ### 実装フェーズ（CLAUDE.md 6章の段階制御ルールに従い1ステップずつ）
 
@@ -35,10 +40,11 @@
 - [ ] `lib/supabase/server.ts`（Service Role Keyクライアント）実装
 - [ ] `lib/validation/rules.ts` 実装
 - [ ] `lib/services/todo-service.ts` / `setting-service.ts` 実装 + Vitest単体テスト
-- [ ] `actions/todo-actions.ts` / `setting-actions.ts`（`markStartNotificationSent`/`markEndNotificationSent`含む）実装
+- [ ] `lib/date-utils.ts`（`getLocalDateString()`）実装
+- [ ] `actions/todo-actions.ts`（`createTodo`, `updateTodoStatus`, `initializeToday`）/ `setting-actions.ts`（`updateSettings`, `markStartNotificationSent`, `markEndNotificationSent`）実装
 - [ ] `app/api/todos/route.ts` / `app/api/settings/route.ts` 実装（`?date=`クエリパラメータ対応）
 - [ ] `components/*`（todo-form, todo-list, status-selector, settings-form, notification-manager）実装 + RTLコンポーネントテスト
-- [ ] `app/page.tsx` / `app/settings/page.tsx` / `app/layout.tsx` 実装（`notification-manager`は`layout.tsx`にマウント）
+- [ ] `app/page.tsx` / `app/settings/page.tsx` / `app/layout.tsx` 実装（`notification-manager`は`layout.tsx`にマウント、`local-date` Cookie同期とハイライト用Contextを提供）
 - [ ] Playwright E2Eテスト（AC-2.x, AC-4.x の通知シナリオ、Chrome通知許可モック・システム時刻モック含む）
 - [ ] 全体テスト実行（`npm run test`, `npm run test:e2e`）→ 最終レビュー
 
