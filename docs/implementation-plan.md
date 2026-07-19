@@ -35,7 +35,15 @@
 
 ### 実装フェーズ（CLAUDE.md 6章の段階制御ルールに従い1ステップずつ）
 
-- [ ] Next.jsプロジェクトのscaffold作成（`create-next-app`、TypeScript、依存関係: supabase-js, Vitest, React Testing Library, Playwright等）
+- [x] Next.jsプロジェクトのscaffold作成
+  - `create-next-app`（TypeScript, App Router, ESLint, no Tailwind, no src-dir）を一時ディレクトリに生成し、既存の`todo-app/supabase/`と統合
+  - 依存関係を追加: `@supabase/supabase-js`（本番）、`vitest` / `@testing-library/react` / `@testing-library/jest-dom` / `@testing-library/user-event` / `jsdom` / `@vitejs/plugin-react`（開発）、`@playwright/test`（開発）
+  - `vitest.config.ts`（jsdom環境、`tests/unit`と`tests/component`を対象）、`playwright.config.ts`（`tests/e2e`対象、`npm run dev`をwebServerとして起動）を作成
+  - `package.json`に`test`（Vitest）・`test:e2e`（Playwright）スクリプトを追加
+  - `.env.local.example`を作成（`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`。実値は`.env.local`に。`.gitignore`の`.env*`除外に`!.env.local.example`の例外を追加）
+  - `npm run build` / `npm run lint` / `npm run test` で疎通確認済み
+  - **判明した互換性の注意点**: インストールされたNext.jsは**16.2.10**（学習データ時点より新しい）。`next/headers`の`cookies()`が**非同期関数**に変更されている（`await cookies()`が必須。Next.js 14以前は同期だった）。component-design.mdのコード例をこれに合わせて修正済み。新しい実験的機能「Cache Components」(`cacheComponents: true`)は未使用（デフォルト非有効）で、設計時に想定していた「`cookies()`使用時に自動的に動的レンダリングになる」という従来モデルのままで問題ない
+  - create-next-appが自動生成した`todo-app/AGENTS.md`・`todo-app/CLAUDE.md`(`@AGENTS.md`をインポートするだけの1行)はそのまま残している。Next.jsのバージョン差異に関する正当な警告のため
 - [ ] `mcp__supabase__generate_typescript_types` でDatabase型を生成し `lib/supabase/types.ts` に反映
 - [ ] `lib/supabase/server.ts`（Service Role Keyクライアント）実装
 - [ ] `lib/validation/rules.ts` 実装
