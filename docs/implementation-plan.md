@@ -47,7 +47,12 @@
 - [x] `mcp__supabase__generate_typescript_types` でDatabase型を生成し `lib/supabase/types.ts` に反映
   - 想定通り、Database型には`task_todos`/`settings`に加え、無関係な既存`todos`テーブルも含まれる。ファイル冒頭のコメントで注意喚起済み
   - `npx tsc --noEmit` / `npm run lint` ともにクリーン
-- [ ] `lib/supabase/server.ts`（Service Role Keyクライアント）実装
+- [x] `lib/supabase/server.ts`（Service Role Keyクライアント）実装
+  - `server-only`パッケージ（Vercel公式、React coreチームによるMITライセンスのマーカーパッケージ）を追加。誤ってClient Componentからimportされるとビルドエラーになる。追加前にnpmレジストリでライセンス・メンテナを確認済み
+  - `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`が未設定ならモジュール読み込み時に即エラー（fail-fast）
+  - Vitest単体テスト（`tests/unit/supabase-server.test.ts`）を追加
+  - **判明した互換性の注意点**: `server-only`は"react-server"というNext.js RSCバンドラー専用のexport条件でのみno-opになる仕組みのため、Vitestでは常にthrowしてしまう。`tests/setup.ts`に`vi.mock("server-only", () => ({}))`を追加して対処（Next.js本番ビルドでの安全機構は影響を受けない、Vitest+Next.jsの定番パターン）
+  - `npm run build` / `npm run lint` / `npm run test` すべてクリーン
 - [ ] `lib/validation/rules.ts` 実装
 - [ ] `lib/services/todo-service.ts` / `setting-service.ts` 実装 + Vitest単体テスト
 - [ ] `lib/date-utils.ts`（`getLocalDateString()`）実装
