@@ -83,7 +83,17 @@
   - サービス層をモックした単体テスト6件を追加、計77件全件パス
   - `npx tsc --noEmit` / `npm run lint` はクリーン
   - `.env.local`をユーザーが設定後、`npm run build`成功を確認。さらに`npm run dev`を起動し実際のSupabaseに対して`GET /api/settings`（マイグレーション時のデフォルト値09:00/18:00を正しく返す）・`GET /api/todos?date=`（空配列を正しく返す）・`GET /api/todos`（dateなしで400）をcurlでスモークテスト済み
-- [ ] `components/*`（todo-form, todo-list, status-selector, settings-form, notification-manager）実装 + RTLコンポーネントテスト
+- [x] `components/*`（todo-form, todo-list, status-selector, settings-form, notification-manager）実装 + RTLコンポーネントテスト
+  - `todo-form.tsx`（Client）: 入力・登録、バリデーションエラー表示、送信中の無効化
+  - `todo-list.tsx`（Server）: `todos`をpropsで受け取り`StatusSelector`を並べるだけの純粋な表示コンポーネント
+  - `status-selector.tsx`（Client）: 3値ボタン、`useHighlight()`によるAC-4.4強調表示
+  - `settings-form.tsx`（Client）: 時刻2つ＋週末トグル、異常系No.6のフィールド別エラー表示
+  - `notification-manager.tsx`（Client）: ポーリング・プッシュ通知・状態バナー・`local-date` Cookie同期・`initializeToday`呼び出し・ハイライトContext提供。判定ロジック（`shouldFireStartNotification`等）は純粋関数としてモジュールレベルでexportし、単体テストで個別に検証できるようにした
+  - notification-managerの`Notification.permission`初期値取得は、エフェクト内での同期`setState`を避けるため`useState`の遅延初期化関数に変更（新しいeslintルール`react-hooks/set-state-in-effect`対応）
+  - **判明した互換性の注意点**: `notification-manager.tsx`は`actions/*`→`lib/services/*`→`lib/supabase/server.ts`を連鎖的にimportするため、これを読み込むテストではVitestが`.env.local`を読まず環境変数未設定でthrowする。`tests/setup.ts`にダミーのSUPABASE_URL/SERVICE_ROLE_KEYをフォールバック設定して解決
+  - コンポーネントテストで`vi.useFakeTimers()`を素朴に使うと、React Testing Libraryの`waitFor`/`findBy`が内部で使うタイマーまで止まりタイムアウトする。`{ toFake: ["Date"] }`でDateのみ偽装するよう修正
+  - 単体テスト(notification-manager純粋関数)25件＋コンポーネントテスト20件を追加、計119件全件パス
+  - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
 - [ ] `app/page.tsx` / `app/settings/page.tsx` / `app/layout.tsx` 実装（`notification-manager`は`layout.tsx`にマウント、`local-date` Cookie同期とハイライト用Contextを提供）
 - [ ] Playwright E2Eテスト（AC-2.x, AC-4.x の通知シナリオ、Chrome通知許可モック・システム時刻モック含む）
 - [ ] 全体テスト実行（`npm run test`, `npm run test:e2e`）→ 最終レビュー
