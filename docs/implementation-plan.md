@@ -77,7 +77,12 @@
   - サービス層をモックした単体テスト13件を追加、計71件全件パス
   - `npm run build`で`'use server'`ディレクティブがNext.js実ビルド上でも問題なくコンパイルされることを確認
   - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
-- [ ] `app/api/todos/route.ts` / `app/api/settings/route.ts` 実装（`?date=`クエリパラメータ対応）
+- [x] `app/api/todos/route.ts` / `app/api/settings/route.ts` 実装（`?date=`クエリパラメータ対応）
+  - Client Componentのポーリング専用の読み取り専用薄いラッパー（CLAUDE.md 1.1）
+  - `/api/todos`は`date`クエリパラメータ必須（欠落は400、不正形式のValidationErrorも400、その他エラーは500）
+  - サービス層をモックした単体テスト6件を追加、計77件全件パス
+  - `npx tsc --noEmit` / `npm run lint` はクリーン
+  - **`npm run build`が失敗する**: これらのRoute Handler経由でサービス層→`lib/supabase/server.ts`が実際に読み込まれるようになり、ビルド時のページデータ収集で`SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`の実値が必要になった（fail-fast検証が意図通り作動）。`.env.local`が未作成のため発生。ユーザーが`.env.local.example`をコピーして実際のService Role Keyを設定する必要がある（要対応、下記フォローアップ参照）
 - [ ] `components/*`（todo-form, todo-list, status-selector, settings-form, notification-manager）実装 + RTLコンポーネントテスト
 - [ ] `app/page.tsx` / `app/settings/page.tsx` / `app/layout.tsx` 実装（`notification-manager`は`layout.tsx`にマウント、`local-date` Cookie同期とハイライト用Contextを提供）
 - [ ] Playwright E2Eテスト（AC-2.x, AC-4.x の通知シナリオ、Chrome通知許可モック・システム時刻モック含む）
@@ -91,3 +96,4 @@
 
 - 既存の無関係な`todos`テーブルのRLSポリシー（anon roleへの無制限アクセス許可）— 対応要否はユーザー判断待ち
 - `lib/services`の単体テストはインメモリFakeで実施しており、実際のSupabase(PostgreSQL)に対する結合テストは未実施。Playwright E2Eステップで実データベースに対する検証を行うか、別途Supabase CLIのローカル環境を整備するか要検討
+- **`.env.local`が未作成**: `npm run build` / `npm run dev`には`SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`の実値が必要。`.env.local.example`をコピーし、Supabaseダッシュボード(Project Settings > API)から Service Role Key を取得して設定する必要がある(ユーザー作業。Claudeは秘密情報を扱わない方針のため代行しない)
