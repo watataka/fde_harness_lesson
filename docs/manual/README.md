@@ -69,7 +69,15 @@ npm run test:watch  # watchモード
 
 Supabaseへの実接続は行わず、インメモリのFakeクライアントでサービス層のロジックを検証します。`.env.local` が無くてもダミー値で動作します。
 
-### 4.2 E2Eテスト（Playwright）
+### 4.2 evalスクリプト（代表入力と期待性質の一覧）
+
+```bash
+npm run eval
+```
+
+`lib/validation/rules.ts` と `components/notification-manager.tsx` の判定ロジックについて、「代表的な入力→期待される性質」を一覧化した評価スクリプト（`todo-app/evals/`）です。`npm run test` にも含まれますが、単独でも実行できます。
+
+### 4.3 E2Eテスト（Playwright）
 
 ```bash
 npx playwright install chromium   # 初回のみ、ブラウザ本体の取得

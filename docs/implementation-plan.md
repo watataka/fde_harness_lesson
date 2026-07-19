@@ -124,7 +124,14 @@
 
 ## 完了サマリー
 
-設計フェーズ4件・実装フェーズ11件、すべて完了。自動テスト計127件（単体97件+コンポーネント20件+E2E 8件、後日カウント変動の可能性あり）が`npm run test` / `npm run test:e2e`でグリーン。`npm run build` / `npm run lint` / `npx tsc --noEmit`もクリーン。
+設計フェーズ4件・実装フェーズ11件、すべて完了。自動テスト計182件（単体97件+コンポーネント20件+eval 63件+E2E 8件、後日カウント変動の可能性あり）が`npm run test` / `npm run test:e2e`でグリーン。`npm run build` / `npm run lint` / `npx tsc --noEmit`もクリーン。
+
+## evalスクリプト
+
+`todo-app/evals/`（`npm run eval`で単独実行可能。`npm run test`にも含まれる）— 最も条件分岐が複雑な2つのロジックについて、「代表入力→期待性質」を一覧化した評価スクリプト。個々の網羅的な単体テスト(`tests/unit/`)とは別に、主要な入力クラスに対する期待動作を一目で見渡せる形にまとめたもの。
+
+- `evals/validation-rules.eval.ts` — `lib/validation/rules.ts`(日付/時刻形式、Todo本文、ステータス、時刻相関チェック)
+- `evals/notification-logic.eval.ts` — `components/notification-manager.tsx`のエクスポート済み純粋関数(通知発火判定、状態バナー判定、週末判定)
 
 ### 進め方
 
