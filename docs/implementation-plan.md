@@ -17,12 +17,15 @@
 - [x] `docs/design/notification-logic.md`（Rev.2） — 通知ロジック設計（プッシュ通知は時刻完全一致・1日1回、状態バナーは`>=`判定で独立評価、という分離設計）
   - 目付け役レビュー: Rev.1 **CONDITIONAL** → Rev.2修正 → **PASS**
   - ユーザー決定事項: スリープ復帰時の緩和判定は不採用（spec.md異常系No.2優先）、マルチユーザー対応(`user_id`)は追加しない
+- [x] `docs/design/service-layer-api.md`（Rev.2） — `todo-service.ts` / `setting-service.ts` の関数シグネチャ・バリデーション・レスポンス形式
+  - 目付け役レビュー: Rev.1 **CONDITIONAL** → Rev.2修正 → **PASS**
+  - ユーザー決定事項: Server Componentはサービス層を直接呼び出してよい（Route Handlerを経由しない、Vercelベストプラクティスに準拠）
+  - 設計のポイント: `updateTodoStatus`はサービス層内で1回自動リトライし異常系No.7を解決／30日クリーンアップは`after()`で非同期化
 
 ## 今後の実装計画
 
 ### 設計フェーズ（残り）
 
-- [ ] サービス層API設計書 — `todo-service.ts` / `setting-service.ts` の関数シグネチャ・バリデーションフロー・レスポンス形式（目付け役レビュー）
 - [ ] 画面/コンポーネント設計書 — `page.tsx` / `todo-form.tsx` 等の役割分担、Server/Client Componentの境界線（目付け役レビュー）
 
 ### 実装フェーズ（CLAUDE.md 6章の段階制御ルールに従い1ステップずつ）
