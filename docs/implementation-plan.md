@@ -44,7 +44,9 @@
   - `npm run build` / `npm run lint` / `npm run test` で疎通確認済み
   - **判明した互換性の注意点**: インストールされたNext.jsは**16.2.10**（学習データ時点より新しい）。`next/headers`の`cookies()`が**非同期関数**に変更されている（`await cookies()`が必須。Next.js 14以前は同期だった）。component-design.mdのコード例をこれに合わせて修正済み。新しい実験的機能「Cache Components」(`cacheComponents: true`)は未使用（デフォルト非有効）で、設計時に想定していた「`cookies()`使用時に自動的に動的レンダリングになる」という従来モデルのままで問題ない
   - create-next-appが自動生成した`todo-app/AGENTS.md`・`todo-app/CLAUDE.md`(`@AGENTS.md`をインポートするだけの1行)はそのまま残している。Next.jsのバージョン差異に関する正当な警告のため
-- [ ] `mcp__supabase__generate_typescript_types` でDatabase型を生成し `lib/supabase/types.ts` に反映
+- [x] `mcp__supabase__generate_typescript_types` でDatabase型を生成し `lib/supabase/types.ts` に反映
+  - 想定通り、Database型には`task_todos`/`settings`に加え、無関係な既存`todos`テーブルも含まれる。ファイル冒頭のコメントで注意喚起済み
+  - `npx tsc --noEmit` / `npm run lint` ともにクリーン
 - [ ] `lib/supabase/server.ts`（Service Role Keyクライアント）実装
 - [ ] `lib/validation/rules.ts` 実装
 - [ ] `lib/services/todo-service.ts` / `setting-service.ts` 実装 + Vitest単体テスト
