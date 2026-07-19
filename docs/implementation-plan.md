@@ -66,7 +66,10 @@
   - 単体テスト20件追加（todo-service 12件、setting-service 8件）、既存と合わせ計54件全件パス
   - `server-only`と同様、`next/server`の`after()`もテスト実行環境では意味を持たないため`tests/*.test.ts`内でモック（呼び出しを配列に記録し、テスト側で明示的にflushする）
   - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
-- [ ] `lib/date-utils.ts`（`getLocalDateString()`）実装
+- [x] `lib/date-utils.ts`（`getLocalDateString()`）実装
+  - ブラウザのローカルタイムゾーンでYYYY-MM-DD形式に変換（UTC変換はしない）
+  - Vitest単体テスト4件（`vi.setSystemTime`で引数省略時の挙動も検証）追加、計58件全件パス
+  - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
 - [ ] `actions/todo-actions.ts`（`createTodo`, `updateTodoStatus`, `initializeToday`）/ `setting-actions.ts`（`updateSettings`, `markStartNotificationSent`, `markEndNotificationSent`）実装
 - [ ] `app/api/todos/route.ts` / `app/api/settings/route.ts` 実装（`?date=`クエリパラメータ対応）
 - [ ] `components/*`（todo-form, todo-list, status-selector, settings-form, notification-manager）実装 + RTLコンポーネントテスト
