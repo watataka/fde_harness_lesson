@@ -2,15 +2,17 @@
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { getLocalDateString } from "@/lib/date-utils";
+import { getLocalDateString, LOCAL_DATE_COOKIE } from "@/lib/date-utils";
 import { initializeToday } from "@/actions/todo-actions";
 import { markStartNotificationSent, markEndNotificationSent } from "@/actions/setting-actions";
 import type { ActionResponse, Settings, Todo } from "@/types";
 import styles from "./notification-manager.module.css";
 
-// notification-logic.md参照。ポーリング間隔・Cookie名。
+// notification-logic.md参照。ポーリング間隔。
 export const POLL_INTERVAL_MS = 20_000;
-export const LOCAL_DATE_COOKIE = "local-date";
+// LOCAL_DATE_COOKIEは lib/date-utils.ts で定義・export する(このファイルは"use client"
+// のため、ここでexportするとServer Componentからのimport時にクライアント参照になり
+// 文字列として使えなくなる。実際にapp/page.tsxで発生した不具合、詳細はそちらのコメント参照)。
 
 const HighlightContext = createContext(false);
 /** AC-4.4: 就業終了通知クリック時にstatus-selector.tsxが「未設定」Todoを強調表示するために使う。 */

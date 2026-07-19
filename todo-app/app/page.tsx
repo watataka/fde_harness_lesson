@@ -1,8 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { getTodosByDate } from "@/lib/services/todo-service";
-import { getLocalDateString } from "@/lib/date-utils";
-import { LOCAL_DATE_COOKIE } from "@/components/notification-manager";
+import { getLocalDateString, LOCAL_DATE_COOKIE } from "@/lib/date-utils";
 import TodoForm from "@/components/todo-form";
 import TodoList from "@/components/todo-list";
 import styles from "./page.module.css";

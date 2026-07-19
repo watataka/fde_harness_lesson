@@ -96,13 +96,22 @@
   - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
 - [x] `app/page.tsx` / `app/settings/page.tsx` / `app/layout.tsx` 実装
   - `app/layout.tsx`: `<NotificationManager>{children}</NotificationManager>`でラップ
-  - `app/page.tsx`: `local-date` Cookie（`components/notification-manager.tsx`のエクスポート定数`LOCAL_DATE_COOKIE`を再利用）から`today`を取得し、`getTodosByDate`（読み取り専用）のみ呼ぶ
+  - `app/page.tsx`: `local-date` Cookie（`LOCAL_DATE_COOKIE`定数を再利用。後日`lib/date-utils.ts`に移設、後述のE2Eテストで判明したバグ参照）から`today`を取得し、`getTodosByDate`（読み取り専用）のみ呼ぶ
   - `app/settings/page.tsx`: `getSettings`を直接呼ぶ
   - create-next-appのボイラープレート（`page.tsx`, `page.module.css`）を全面置き換え
   - `npm run build`で`/`が動的（`cookies()`使用のため）、`/settings`が静的（`revalidatePath`で更新時に再検証される）とビルド出力で確認
   - `npm run dev` + ブラウザで実際に動作確認: Todo登録→一覧反映→ステータス変更（完了に強調表示）→設定画面表示、実際のSupabaseに対してconsoleエラーなしで一連の操作が成功。確認用に作成したテストTodoはSupabase MCP経由で削除済み
   - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
-- [ ] Playwright E2Eテスト（AC-2.x, AC-4.x の通知シナリオ、Chrome通知許可モック・システム時刻モック含む）
+- [x] Playwright E2Eテスト（AC-2.x, AC-4.x の通知シナリオ、Chrome通知許可モック・システム時刻モック含む）
+  - **データ層の方針（ユーザー承認済み）**: 実際のSupabaseプロジェクトに対して実行し、テスト後に自動クリーンアップする方式を採用（Supabase CLIローカル環境は今回構築しない、要フォローアップとして継続）
+  - `tests/e2e/helpers/supabase-test-client.ts`: Service Role Keyで直接Supabaseに接続し、`settings`のセットアップ・復元、`task_todos`のシード・クリーンアップを行うヘルパー
+  - `tests/e2e/helpers/notification-mock.ts`: `page.addInitScript()`で`window.Notification`をモックに差し替え、実OS通知を出さずにタイトル・本文・onclickハンドラを記録する
+  - `page.clock.setFixedTime()`（Dateのみ固定、setTimeout/setIntervalは実時間のまま動く）でシステム時刻をモック
+  - AC-2.1/2.8, AC-2.5, AC-2.7, AC-4.1/4.6, AC-4.2, AC-4.3, AC-4.4 の7シナリオを実装、全件パス
+  - **実装中に2件の重大な不具合を発見・修正**（いずれも実運用にも影響しうる本物のバグだった）:
+    1. **危険: 30日クリーンアップによるデータ全消失リスク**: `TEST_DATE`に遠い未来の日付(2099年)を使ったところ、`initializeTodayTodos`内の30日クリーンアップの`cutoff`(today-30日)も2099年になり、**実際の全データが「30日より古い」と誤判定され削除されうる状態**だった(今回は他に実データが無かったため実害なし、実行前に発見)。`TEST_DATE`を「実際の明日」に変更し、`last_carryover_date`をテスト日付に事前セットして繰越スキャンが実データに触れないようにして解決
+    2. **`LOCAL_DATE_COOKIE`定数を`"use client"`ファイルからexportしていたバグ**: `notification-manager.tsx`(`"use client"`)からexportした定数を`app/page.tsx`(Server Component)でimportすると、文字列ではなくクライアント参照として扱われ、`cookieStore.get(LOCAL_DATE_COOKIE)`が常に`undefined`を返していた。結果、SSR初期表示が常にサーバーの実日付にフォールバックし続け、**当日のTodo一覧が実際には正しく表示されないことがある**という実ユーザーにも影響しうるバグだった。定数を`"use client"`を持たない`lib/date-utils.ts`に移設して解決。E2Eテストで実際にブラウザ+実DBを通したことで初めて発覚した(Vitestの単体/コンポーネントテストではSupabase/Cookieを全てモックしていたため検出できなかった)
+  - `npm run test` (119件) / `npm run test:e2e` (7件) / `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン。Supabase上のテストデータ・設定値はクリーンアップ済みを確認
 - [ ] 全体テスト実行（`npm run test`, `npm run test:e2e`）→ 最終レビュー
 
 ### 進め方
