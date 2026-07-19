@@ -59,7 +59,13 @@
   - spec.md AC-1.5, AC-1.6, 異常系No.6（同時刻を含む前後関係チェック）、CLAUDE.md 4.2/4.3のバリデーションルールをそのまま反映
   - Vitest単体テスト34件（`tests/unit/validation-rules.test.ts`）追加、全件パス
   - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
-- [ ] `lib/services/todo-service.ts` / `setting-service.ts` 実装 + Vitest単体テスト
+- [x] `lib/services/todo-service.ts` / `setting-service.ts` 実装 + Vitest単体テスト
+  - todo-service: `getTodosByDate`, `createTodo`, `updateTodoStatus`（CAS+1回自動リトライ、`ConflictError`）, `initializeTodayTodos`（繰越は同期、30日クリーンアップは`after()`で非同期）を実装
+  - setting-service: `getSettings`, `updateSettings`, `markStartNotificationSent`, `markEndNotificationSent`を実装
+  - **テスト戦略の判断**: CLAUDE.md 5「テストにはSupabaseのテスト専用プロジェクト、またはローカル環境(`supabase start`)を使用する」に対し、Supabase CLI/Docker環境が未整備なため、今回の単体テストは`tests/unit/helpers/fake-supabase-client.ts`（このテストスイート専用のインメモリFake、eq/lt/order/limit/single/maybeSingle・updated_atトリガー相当の挙動を再現）を用いてサービス層のロジックを検証する方式にした。実データベースに対する結合テストは今後のPlaywright E2Eステップで扱う（要検討事項として残す）
+  - 単体テスト20件追加（todo-service 12件、setting-service 8件）、既存と合わせ計54件全件パス
+  - `server-only`と同様、`next/server`の`after()`もテスト実行環境では意味を持たないため`tests/*.test.ts`内でモック（呼び出しを配列に記録し、テスト側で明示的にflushする）
+  - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
 - [ ] `lib/date-utils.ts`（`getLocalDateString()`）実装
 - [ ] `actions/todo-actions.ts`（`createTodo`, `updateTodoStatus`, `initializeToday`）/ `setting-actions.ts`（`updateSettings`, `markStartNotificationSent`, `markEndNotificationSent`）実装
 - [ ] `app/api/todos/route.ts` / `app/api/settings/route.ts` 実装（`?date=`クエリパラメータ対応）
@@ -75,3 +81,4 @@
 ## 未解決・要フォローアップ事項
 
 - 既存の無関係な`todos`テーブルのRLSポリシー（anon roleへの無制限アクセス許可）— 対応要否はユーザー判断待ち
+- `lib/services`の単体テストはインメモリFakeで実施しており、実際のSupabase(PostgreSQL)に対する結合テストは未実施。Playwright E2Eステップで実データベースに対する検証を行うか、別途Supabase CLIのローカル環境を整備するか要検討
