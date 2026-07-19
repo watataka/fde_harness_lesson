@@ -124,6 +124,33 @@ test.describe.serial("通知シナリオ(AC-2.x, AC-4.x)", () => {
     }).toPass({ timeout: 10_000 });
   });
 
+  test("AC-4.7: 就業終了通知は同日中に再発火しない", async ({ page }) => {
+    await setTestSettings({
+      eveningTime: "18:00:00",
+      weekendNotificationEnabled: true,
+      lastEndNotifiedDate: null,
+    });
+    await seedTestTodos([{ content: "資料作成", status: "unset" }]);
+
+    await mockNotificationApi(page, "granted");
+    await page.clock.setFixedTime(fixedTime(18, 0));
+    await page.goto("/");
+
+    await expect(async () => {
+      expect(await getCapturedNotifications(page)).toHaveLength(1);
+    }).toPass({ timeout: 10_000 });
+
+    await expect(async () => {
+      const row = await getSettingsRow();
+      expect(row.last_end_notified_date).toBe(TEST_DATE);
+    }).toPass({ timeout: 10_000 });
+
+    await page.reload();
+    await page.waitForTimeout(2000);
+
+    expect(await getCapturedNotifications(page)).toHaveLength(0);
+  });
+
   test("AC-4.2: 全Todoのステータスが設定済みなら通知は出ない", async ({ page }) => {
     await setTestSettings({
       eveningTime: "18:00:00",

@@ -107,19 +107,33 @@
   - `tests/e2e/helpers/supabase-test-client.ts`: Service Role Keyで直接Supabaseに接続し、`settings`のセットアップ・復元、`task_todos`のシード・クリーンアップを行うヘルパー
   - `tests/e2e/helpers/notification-mock.ts`: `page.addInitScript()`で`window.Notification`をモックに差し替え、実OS通知を出さずにタイトル・本文・onclickハンドラを記録する
   - `page.clock.setFixedTime()`（Dateのみ固定、setTimeout/setIntervalは実時間のまま動く）でシステム時刻をモック
-  - AC-2.1/2.8, AC-2.5, AC-2.7, AC-4.1/4.6, AC-4.2, AC-4.3, AC-4.4 の7シナリオを実装、全件パス
+  - AC-2.1/2.8, AC-2.5, AC-2.7, AC-4.1/4.6, AC-4.7, AC-4.2, AC-4.3, AC-4.4 の8シナリオを実装、全件パス
   - **実装中に2件の重大な不具合を発見・修正**（いずれも実運用にも影響しうる本物のバグだった）:
     1. **危険: 30日クリーンアップによるデータ全消失リスク**: `TEST_DATE`に遠い未来の日付(2099年)を使ったところ、`initializeTodayTodos`内の30日クリーンアップの`cutoff`(today-30日)も2099年になり、**実際の全データが「30日より古い」と誤判定され削除されうる状態**だった(今回は他に実データが無かったため実害なし、実行前に発見)。`TEST_DATE`を「実際の明日」に変更し、`last_carryover_date`をテスト日付に事前セットして繰越スキャンが実データに触れないようにして解決
     2. **`LOCAL_DATE_COOKIE`定数を`"use client"`ファイルからexportしていたバグ**: `notification-manager.tsx`(`"use client"`)からexportした定数を`app/page.tsx`(Server Component)でimportすると、文字列ではなくクライアント参照として扱われ、`cookieStore.get(LOCAL_DATE_COOKIE)`が常に`undefined`を返していた。結果、SSR初期表示が常にサーバーの実日付にフォールバックし続け、**当日のTodo一覧が実際には正しく表示されないことがある**という実ユーザーにも影響しうるバグだった。定数を`"use client"`を持たない`lib/date-utils.ts`に移設して解決。E2Eテストで実際にブラウザ+実DBを通したことで初めて発覚した(Vitestの単体/コンポーネントテストではSupabase/Cookieを全てモックしていたため検出できなかった)
-  - `npm run test` (119件) / `npm run test:e2e` (7件) / `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン。Supabase上のテストデータ・設定値はクリーンアップ済みを確認
-- [ ] 全体テスト実行（`npm run test`, `npm run test:e2e`）→ 最終レビュー
+  - `npm run test` (119件) / `npm run test:e2e` (8件) / `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン。Supabase上のテストデータ・設定値はクリーンアップ済みを確認
+- [x] 全体テスト実行（`npm run test`, `npm run test:e2e`）→ 最終レビュー
+  - クリーンな状態（`.next`, `test-results`, `playwright-report`削除後）から`npm run lint` / `npx tsc --noEmit` / `npm run test`(119件) / `npm run build` / `npm run test:e2e`を再実行し、全件クリーンを再確認
+  - AC-2.7とのカバレッジの非対称性に気づき、AC-4.7（就業終了通知の同日再発火防止）のE2Eテストを追加（計8件のE2Eシナリオに）
+  - **spec.mdの受入基準をAC-1.x〜AC-4.xまで1件ずつ実装・テストと突き合わせ**、大半は単体/コンポーネント/E2Eのいずれかで直接カバー済みであることを確認。以下は軽微な既知のカバレッジギャップとして記録し、今回は追加対応しない（理由: いずれもテスト済みの近接シナリオと機構を共有しており、追加検証の限界効用が低いと判断）:
+    - AC-2.3 / AC-4.4の`window.focus()`呼び出し自体は明示的にアサートしていない(AC-4.4のハイライト検証は同じonclickハンドラ内の処理のため、間接的な動作確認にはなっている)
+    - AC-2.4(通知許可`default`時の`requestPermission()`呼び出し)はE2E未検証
+    - 異常系No.11(ネットワーク切断時のエラー表示)は未検証(エラーハンドリング自体はCLAUDE.md 3.1準拠で実装済み、UIへの反映の自動テストはなし)
+  - **CLAUDE.md禁止パターンの最終grepチェック**を実施、すべてクリーンを確認: `select('*')`、`any`型、`eval`/`new Function`、空catch、`NEXT_PUBLIC_`経由のService Role Key露出、inline style、Client ComponentからのSupabaseサーバークライアント直接import — いずれも0件
+  - Supabase上のテストデータ・設定値はクリーンアップ済み、既存の無関係な`todos`テーブルも無変更のまま
+
+## 完了サマリー
+
+設計フェーズ4件・実装フェーズ11件、すべて完了。自動テスト計127件（単体97件+コンポーネント20件+E2E 8件、後日カウント変動の可能性あり）が`npm run test` / `npm run test:e2e`でグリーン。`npm run build` / `npm run lint` / `npx tsc --noEmit`もクリーン。
 
 ### 進め方
 
-各ステップ: 実装 → `git diff`確認 → テスト実行 → （設計判断を伴う場合）目付け役レビュー → コミット、のサイクルで進める。既存の未コミット分（設計フェーズの成果一式）を最初のコミットとしてまとめ、以降は実装ステップごとに区切ってコミットする。
+各ステップ: 実装 → `git diff`確認 → テスト実行 → （設計判断を伴う場合）目付け役レビュー → コミット、のサイクルで進めた。
 
 ## 未解決・要フォローアップ事項
 
 - 既存の無関係な`todos`テーブルのRLSポリシー（anon roleへの無制限アクセス許可）— 対応要否はユーザー判断待ち
-- `lib/services`の単体テストはインメモリFakeで実施しており、実際のSupabase(PostgreSQL)に対する結合テストは未実施。Playwright E2Eステップで実データベースに対する検証を行うか、別途Supabase CLIのローカル環境を整備するか要検討
+- `lib/services`の単体テストはインメモリFakeを使用。Supabase CLIのローカル環境（`supabase start`）を整備すれば、実PostgreSQLに対するより厳密な結合テストに置き換えられる
+- 上記「軽微な既知のカバレッジギャップ」（AC-2.3/4.4のfocus検証、AC-2.4のrequestPermission検証、異常系No.11）
+- 本番デプロイ（Vercel等へのデプロイ設定）は未着手。ローカル開発環境での動作確認のみ完了している
 - ~~`.env.local`が未作成~~ → ユーザーが設定済み。`npm run build`成功、`/api/settings`・`/api/todos`の実Supabaseに対するスモークテスト済み
