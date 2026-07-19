@@ -70,7 +70,13 @@
   - ブラウザのローカルタイムゾーンでYYYY-MM-DD形式に変換（UTC変換はしない）
   - Vitest単体テスト4件（`vi.setSystemTime`で引数省略時の挙動も検証）追加、計58件全件パス
   - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
-- [ ] `actions/todo-actions.ts`（`createTodo`, `updateTodoStatus`, `initializeToday`）/ `setting-actions.ts`（`updateSettings`, `markStartNotificationSent`, `markEndNotificationSent`）実装
+- [x] `actions/todo-actions.ts`（`createTodo`, `updateTodoStatus`, `initializeToday`）/ `setting-actions.ts`（`updateSettings`, `markStartNotificationSent`, `markEndNotificationSent`）実装
+  - サービス層の例外を`ActionResponse`の3分岐（ValidationError/ConflictError/その他）に変換する薄いラッパーとして実装（service-layer-api.md）
+  - `updateTodoStatus`は成功時・`ConflictError`時（DBが他の操作で実際に変わっているため）に`revalidatePath('/')`を呼ぶが、`ValidationError`時は呼ばない（DBに触れていないため）。この使い分けをテストで明示的に検証
+  - `markStartNotificationSent`/`markEndNotificationSent`は画面表示に直接影響しないため`revalidatePath`を呼ばない
+  - サービス層をモックした単体テスト13件を追加、計71件全件パス
+  - `npm run build`で`'use server'`ディレクティブがNext.js実ビルド上でも問題なくコンパイルされることを確認
+  - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
 - [ ] `app/api/todos/route.ts` / `app/api/settings/route.ts` 実装（`?date=`クエリパラメータ対応）
 - [ ] `components/*`（todo-form, todo-list, status-selector, settings-form, notification-manager）実装 + RTLコンポーネントテスト
 - [ ] `app/page.tsx` / `app/settings/page.tsx` / `app/layout.tsx` 実装（`notification-manager`は`layout.tsx`にマウント、`local-date` Cookie同期とハイライト用Contextを提供）
