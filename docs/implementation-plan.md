@@ -53,7 +53,12 @@
   - Vitest単体テスト（`tests/unit/supabase-server.test.ts`）を追加
   - **判明した互換性の注意点**: `server-only`は"react-server"というNext.js RSCバンドラー専用のexport条件でのみno-opになる仕組みのため、Vitestでは常にthrowしてしまう。`tests/setup.ts`に`vi.mock("server-only", () => ({}))`を追加して対処（Next.js本番ビルドでの安全機構は影響を受けない、Vitest+Next.jsの定番パターン）
   - `npm run build` / `npm run lint` / `npm run test` すべてクリーン
-- [ ] `lib/validation/rules.ts` 実装
+- [x] `types/index.ts`（`TodoStatus`, `Todo`, `Settings`, `ActionResponse<T>`）を先行実装（`lib/validation/rules.ts`が`TodoStatus`に依存するため）
+- [x] `lib/validation/rules.ts` 実装
+  - `ValidationError`クラス、`isValidDateString`/`isValidTimeString`、`validateDateString`/`validateTodoContent`/`validateTodoStatus`/`validateSettingsTimes`
+  - spec.md AC-1.5, AC-1.6, 異常系No.6（同時刻を含む前後関係チェック）、CLAUDE.md 4.2/4.3のバリデーションルールをそのまま反映
+  - Vitest単体テスト34件（`tests/unit/validation-rules.test.ts`）追加、全件パス
+  - `npm run build` / `npm run lint` / `npx tsc --noEmit` すべてクリーン
 - [ ] `lib/services/todo-service.ts` / `setting-service.ts` 実装 + Vitest単体テスト
 - [ ] `lib/date-utils.ts`（`getLocalDateString()`）実装
 - [ ] `actions/todo-actions.ts`（`createTodo`, `updateTodoStatus`, `initializeToday`）/ `setting-actions.ts`（`updateSettings`, `markStartNotificationSent`, `markEndNotificationSent`）実装
