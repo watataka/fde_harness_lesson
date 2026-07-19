@@ -132,8 +132,12 @@
 
 ## 未解決・要フォローアップ事項
 
-- 既存の無関係な`todos`テーブルのRLSポリシー（anon roleへの無制限アクセス許可）— 対応要否はユーザー判断待ち
-- `lib/services`の単体テストはインメモリFakeを使用。Supabase CLIのローカル環境（`supabase start`）を整備すれば、実PostgreSQLに対するより厳密な結合テストに置き換えられる
-- 上記「軽微な既知のカバレッジギャップ」（AC-2.3/4.4のfocus検証、AC-2.4のrequestPermission検証、異常系No.11）
-- 本番デプロイ（Vercel等へのデプロイ設定）は未着手。ローカル開発環境での動作確認のみ完了している
+- ~~既存の無関係な`todos`テーブルのRLSポリシー~~ → ユーザー確認済み、現状のまま変更不要でクローズ（`task_todos`/`settings`はCLAUDE.md 1.1通りService Role Key経由のみのアクセスを維持）
+- ~~`lib/services`の単体テストはインメモリFakeを使用~~ → ユーザー確認済み、Supabase CLIローカル環境は不要としてクローズ
+- ~~本番デプロイ（Vercel等へのデプロイ設定）は未着手~~ → ユーザー確認済み、今回は対応不要としてクローズ。代わりに `docs/manual/README.md` に起動・運用手順書を作成
+- 上記「軽微な既知のカバレッジギャップ」（AC-2.3/4.4のfocus検証、AC-2.4のrequestPermission検証、異常系No.11）は引き続き未対応（優先度低）
 - ~~`.env.local`が未作成~~ → ユーザーが設定済み。`npm run build`成功、`/api/settings`・`/api/todos`の実Supabaseに対するスモークテスト済み
+
+## 手順書
+
+`docs/manual/README.md` — 初回セットアップ・開発サーバー起動・テスト実行・本番ビルド確認・トラブルシューティングをまとめた運用手順書。
