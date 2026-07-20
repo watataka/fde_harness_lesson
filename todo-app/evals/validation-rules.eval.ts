@@ -9,10 +9,12 @@ import {
   validateTodoStatus,
 } from "@/lib/validation/rules";
 
-// 代表入力と期待性質(property)を一覧化した評価スクリプト。
+// 代表入力と期待性質(property)を一覧化した評価スクリプト(主要な入力クラスの網羅的サンプリング用)。
 // tests/unit/validation-rules.test.ts の網羅的な単体テストとは別に、
 // 「主要な入力クラスに対してどんな性質が保証されるべきか」を一目で見渡せる形にまとめたもの。
 // 実行: npm run eval
+//
+// 実際に発生したバグの回帰ケースは evals/regressions.eval.ts に集約する(このファイルには追加しない)。
 
 describe("[eval] isValidDateString: 代表入力と期待性質", () => {
   const cases: { input: string; expected: boolean; note: string }[] = [
